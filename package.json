@@ -1,7 +1,10 @@
 {
-  "name": "ai-slash-commands-home",
+  "name": "ai-slash-commands",
   "private": true,
   "type": "module",
+  "bin": {
+    "ai-slash-commands": "scripts/cli.mjs"
+  },
   "scripts": {
     "gen": "node scripts/gen.mjs",
     "install": "node scripts/install.mjs",

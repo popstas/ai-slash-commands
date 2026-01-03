@@ -1,4 +1,4 @@
-# ai-slash-commands-home
+# ai-slash-commands
 
 Один набор markdown-промптов в `./prompts/*.md`, генерация в `./dist/**` и установка в домашние папки для:
 - Claude Code
@@ -25,6 +25,17 @@ npm run gen
 3) Установи в домашние папки:
 ```bash
 npm run install
+```
+
+## NPX
+Можно установить команды из любой папки с `*.md` файлами:
+```bash
+npx ai-slash-commands ./path/to/commands
+```
+
+Опционально можно ограничить список целей:
+```bash
+npx ai-slash-commands ./path/to/commands --targets claude,cursor
 ```
 
 ## Windsurf: важный момент

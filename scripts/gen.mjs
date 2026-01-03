@@ -6,7 +6,7 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 const repoRoot = path.resolve(__dirname, "..");
-const promptsDir = path.join(repoRoot, "prompts");
+const defaultPromptsDir = path.join(repoRoot, "prompts");
 const distDir = path.join(repoRoot, "dist");
 
 const TARGETS = {
@@ -17,29 +17,31 @@ const TARGETS = {
 };
 
 function parseArgs() {
-  const idx = process.argv.indexOf("--targets");
-  const raw = idx >= 0 ? process.argv[idx + 1] : "claude,cursor,windsurf,codex";
-  const targets = raw.split(",").map(s => s.trim()).filter(Boolean);
-  return { targets };
+  const idxTargets = process.argv.indexOf("--targets");
+  const rawTargets = idxTargets >= 0 ? process.argv[idxTargets + 1] : "claude,cursor,windsurf,codex";
+  const targets = rawTargets.split(",").map(s => s.trim()).filter(Boolean);
+
+  const idxSrc = process.argv.indexOf("--src");
+  const rawSrc = idxSrc >= 0 ? process.argv[idxSrc + 1] : null;
+
+  return { targets, promptsDir: rawSrc ? path.resolve(rawSrc) : defaultPromptsDir };
 }
 
 async function ensureDir(p) {
   await fs.mkdir(p, { recursive: true });
 }
 
-async function listPromptFiles() {
+async function listPromptFiles(promptsDir) {
   const entries = await fs.readdir(promptsDir, { withFileTypes: true });
   return entries
     .filter(e => e.isFile() && e.name.toLowerCase().endsWith(".md"))
     .map(e => e.name);
 }
 
-async function main() {
-  const { targets } = parseArgs();
-
-  const promptFiles = await listPromptFiles();
+export async function generate({ targets, promptsDir }) {
+  const promptFiles = await listPromptFiles(promptsDir);
   if (promptFiles.length === 0) {
-    console.error("No prompts found in ./prompts (expected *.md).");
+    console.error(`No prompts found in ${promptsDir} (expected *.md).`);
     process.exit(1);
   }
 
@@ -67,7 +69,16 @@ async function main() {
   }
 }
 
-main().catch((err) => {
-  console.error(err);
-  process.exit(1);
-});
+async function main() {
+  const { targets, promptsDir } = parseArgs();
+
+  await generate({ targets, promptsDir });
+}
+
+const isMain = process.argv[1] && fileURLToPath(import.meta.url) === path.resolve(process.argv[1]);
+if (isMain) {
+  main().catch((err) => {
+    console.error(err);
+    process.exit(1);
+  });
+}

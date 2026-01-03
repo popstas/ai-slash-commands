@@ -65,9 +65,7 @@ function parseArgs() {
   return { targets };
 }
 
-async function main() {
-  const { targets } = parseArgs();
-
+export async function install({ targets }) {
   for (const t of targets) {
     if (!SRC[t] || !DEST[t]) {
       console.error(`Unknown target: ${t}. Allowed: ${Object.keys(SRC).join(", ")}`);
@@ -81,7 +79,15 @@ async function main() {
   }
 }
 
-main().catch((err) => {
-  console.error(err);
-  process.exit(1);
-});
+async function main() {
+  const { targets } = parseArgs();
+  await install({ targets });
+}
+
+const isMain = process.argv[1] && fileURLToPath(import.meta.url) === path.resolve(process.argv[1]);
+if (isMain) {
+  main().catch((err) => {
+    console.error(err);
+    process.exit(1);
+  });
+}
