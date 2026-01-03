@@ -1,8 +1,14 @@
 #!/usr/bin/env node
 import fs from "node:fs/promises";
 import path from "node:path";
+import { fileURLToPath } from "node:url";
 import { generate } from "./gen.mjs";
 import { install } from "./install.mjs";
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+const repoRoot = path.resolve(__dirname, "..");
+const defaultPromptsDir = path.join(repoRoot, "prompts");
 
 function parseArgs() {
   const args = process.argv.slice(2);
@@ -27,17 +33,12 @@ function parseArgs() {
     commandsDir = a;
   }
 
-  if (!commandsDir) {
-    console.error("Usage: ai-slash-commands <commands-dir> [--targets claude,cursor,windsurf,codex]");
-    process.exit(1);
-  }
-
   const targets = (targetsRaw ?? "claude,cursor,windsurf,codex")
     .split(",")
     .map(s => s.trim())
     .filter(Boolean);
 
-  return { commandsDir: path.resolve(commandsDir), targets };
+  return { commandsDir: commandsDir ? path.resolve(commandsDir) : defaultPromptsDir, targets };
 }
 
 async function ensureCommandsDir(commandsDir) {

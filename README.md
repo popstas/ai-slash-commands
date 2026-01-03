@@ -28,6 +28,11 @@ npm run install
 ```
 
 ## NPX
+По умолчанию можно установить команды из встроенной папки `./prompts`:
+```bash
+npx ai-slash-commands
+```
+
 Можно установить команды из любой папки с `*.md` файлами:
 ```bash
 npx ai-slash-commands ./path/to/commands
