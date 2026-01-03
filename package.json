@@ -1,0 +1,10 @@
+{
+  "name": "ai-slash-commands-home",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "gen": "node scripts/gen.mjs",
+    "install": "node scripts/install.mjs",
+    "link:windsurf": "node scripts/link-windsurf.mjs"
+  }
+}
