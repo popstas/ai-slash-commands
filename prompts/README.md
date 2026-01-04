@@ -6,7 +6,13 @@ This directory contains AI slash command prompts.
 
 ### `/commit`
 
-Create one clean commit from the current changes.
+# commit - make a commit
 
 *Source: [commit.md](commit.md)*
+
+### `/learn`
+
+# learn - add agents knowledge
+
+*Source: [learn.md](learn.md)*
 
