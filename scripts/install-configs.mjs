@@ -65,9 +65,7 @@ function parseArgs() {
   return { targets };
 }
 
-async function main() {
-  const { targets } = parseArgs();
-
+export async function install({ targets }) {
   for (const t of targets) {
     if (!SRC[t] || !DEST[t]) {
       console.error(`Unknown target: ${t}. Allowed: ${Object.keys(SRC).join(", ")}`);
@@ -79,6 +77,11 @@ async function main() {
     const count = await copyAll(SRC[t], DEST[t]);
     console.log(`${t}: installed ${count} prompt(s) -> ${DEST[t]}`);
   }
+}
+
+async function main() {
+  const { targets } = parseArgs();
+  await install({ targets });
 }
 
 main().catch((err) => {

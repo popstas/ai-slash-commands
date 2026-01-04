@@ -33,7 +33,7 @@ npm run gen
 
 3) Установи в домашние папки:
 ```bash
-npm run install
+npm run install-configs
 ```
 
 ## NPX
@@ -70,7 +70,7 @@ npm run link:windsurf
   - `dist/windsurf/workflows/*.md`
   - `dist/codex/prompts/*.md`
 
-- `npm run install` - копирует из `dist/**` в:
+- `npm run install-configs` - копирует из `dist/**` в:
   - `~/.claude/commands`
   - `~/.cursor/commands`
   - `~/.windsurf/workflows` (хранилище, дальше линк)
