@@ -1,4 +1,4 @@
-# audit-packages - update packages
+# dependencies - update packages
 
 Check package versions for known vulnerabilities. Update vulnerable packages.
 

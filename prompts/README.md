@@ -4,17 +4,17 @@ This directory contains AI slash command prompts.
 
 ## Available Commands
 
-### `/audit-packages`
-
-# audit-packages - update packages
-
-*Source: [audit-packages.md](audit-packages.md)*
-
 ### `/commit`
 
 # commit - make a commit
 
 *Source: [commit.md](commit.md)*
+
+### `/dependencies`
+
+# dependencies - update packages
+
+*Source: [dependencies.md](dependencies.md)*
 
 ### `/feat`
 
@@ -33,4 +33,10 @@ This directory contains AI slash command prompts.
 # refactoring - refactor the code
 
 *Source: [refactoring.md](refactoring.md)*
+
+### `/run-and-check`
+
+# run-and-check - run and check the code
+
+*Source: [run-and-check.md](run-and-check.md)*
 
