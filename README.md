@@ -9,6 +9,9 @@ npx ai-slash-commands
 
 [Prompts list](prompts/)
 
+Some of commands was copied from:
+- https://github.com/hamzafer/cursor-commands
+
 Один набор markdown-промптов в `./prompts/*.md`, генерация в `./dist/**` и установка в домашние папки для:
 - Claude Code
 - Cursor
