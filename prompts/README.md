@@ -76,3 +76,9 @@ This directory contains AI slash command prompts.
 
 *Source: [security-audit.md](security-audit.md)*
 
+### `/tests-write`
+
+# Write Unit Tests
+
+*Source: [tests-write.md](tests-write.md)*
+

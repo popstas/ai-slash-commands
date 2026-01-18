@@ -14,11 +14,12 @@ const TARGETS = {
   cursor:   { out: "cursor/commands" },
   windsurf: { out: "windsurf/workflows" },
   codex:    { out: "codex/prompts" },
+  opencode: { out: "opencode/commands" },
 };
 
 function parseArgs() {
   const idxTargets = process.argv.indexOf("--targets");
-  const rawTargets = idxTargets >= 0 ? process.argv[idxTargets + 1] : "claude,cursor,windsurf,codex";
+  const rawTargets = idxTargets >= 0 ? process.argv[idxTargets + 1] : "claude,cursor,windsurf,codex,opencode";
   const targets = rawTargets.split(",").map(s => s.trim()).filter(Boolean);
 
   const idxSrc = process.argv.indexOf("--src");

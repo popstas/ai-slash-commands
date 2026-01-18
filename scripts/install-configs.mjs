@@ -21,6 +21,7 @@ const DEST = {
   windsurf: path.join(home, ".windsurf", "workflows"),
   // Codex supports CODEX_HOME (defaults to ~/.codex). Prompts live under $CODEX_HOME/prompts.
   codex:    path.join(process.env.CODEX_HOME ?? path.join(home, ".codex"), "prompts"),
+  opencode: path.join(home, ".config", "opencode", "commands"),
 };
 
 const SRC = {
@@ -28,6 +29,7 @@ const SRC = {
   cursor:   path.join(distDir, "cursor", "commands"),
   windsurf: path.join(distDir, "windsurf", "workflows"),
   codex:    path.join(distDir, "codex", "prompts"),
+  opencode: path.join(distDir, "opencode", "commands"),
 };
 
 async function ensureDir(p) {
@@ -60,7 +62,7 @@ async function copyAll(srcDir, dstDir) {
 
 function parseArgs() {
   const idx = process.argv.indexOf("--targets");
-  const raw = idx >= 0 ? process.argv[idx + 1] : "claude,cursor,windsurf,codex";
+  const raw = idx >= 0 ? process.argv[idx + 1] : "claude,cursor,windsurf,codex,opencode";
   const targets = raw.split(",").map(s => s.trim()).filter(Boolean);
   return { targets };
 }
