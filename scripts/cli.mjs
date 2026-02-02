@@ -33,7 +33,7 @@ function parseArgs() {
     commandsDir = a;
   }
 
-  const targets = (targetsRaw ?? "claude,cursor,windsurf,codex")
+  const targets = (targetsRaw ?? "claude,cursor,windsurf,codex,opencode,antigravity")
     .split(",")
     .map(s => s.trim())
     .filter(Boolean);

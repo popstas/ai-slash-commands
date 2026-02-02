@@ -21,6 +21,8 @@ const DEST = {
   windsurf: path.join(home, ".windsurf", "workflows"),
   // Codex supports CODEX_HOME (defaults to ~/.codex). Prompts live under $CODEX_HOME/prompts.
   codex:    path.join(process.env.CODEX_HOME ?? path.join(home, ".codex"), "prompts"),
+  opencode: path.join(home, ".config", "opencode", "commands"),
+  antigravity: path.join(home, ".config", "google-antigravity", "commands"),
 };
 
 const SRC = {
@@ -28,6 +30,8 @@ const SRC = {
   cursor:   path.join(distDir, "cursor", "commands"),
   windsurf: path.join(distDir, "windsurf", "workflows"),
   codex:    path.join(distDir, "codex", "prompts"),
+  opencode: path.join(distDir, "opencode", "commands"),
+  antigravity: path.join(distDir, "antigravity", "commands"),
 };
 
 async function listMd(dir) {
@@ -65,7 +69,7 @@ async function removeAll(srcDir, dstDir) {
 
 function parseArgs() {
   const idx = process.argv.indexOf("--targets");
-  const raw = idx >= 0 ? process.argv[idx + 1] : "claude,cursor,windsurf,codex";
+  const raw = idx >= 0 ? process.argv[idx + 1] : "claude,cursor,windsurf,codex,opencode,antigravity";
   const targets = raw.split(",").map(s => s.trim()).filter(Boolean);
   return { targets };
 }
