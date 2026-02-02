@@ -1,6 +1,6 @@
 # ai-slash-commands
 
-A tool for managing AI slash commands and prompts across multiple AI-powered editors. Write prompts once in markdown, and install them to Claude Code, Cursor, Windsurf, and Codex.
+A tool for managing AI slash commands and prompts across multiple AI-powered editors. Write prompts once in markdown, and install them to Claude Code, Cursor, Windsurf, Codex, OpenCode, and Google Antigravity.
 
 **Quick start:**
 ```bash
@@ -17,6 +17,8 @@ Some of commands was copied from:
 - Cursor
 - Windsurf (через линк в текущий workspace)
 - Codex (custom prompts)
+- OpenCode
+- Google Antigravity
 
 ## Почему так
 - Источник истины - только prompt (markdown).  
@@ -72,12 +74,16 @@ npm run link:windsurf
   - `dist/cursor/commands/*.md`
   - `dist/windsurf/workflows/*.md`
   - `dist/codex/prompts/*.md`
+  - `dist/opencode/commands/*.md`
+  - `dist/antigravity/commands/*.md`
 
 - `npm run install-configs` - копирует из `dist/**` в:
   - `~/.claude/commands`
   - `~/.cursor/commands`
   - `~/.windsurf/workflows` (хранилище, дальше линк)
   - `${CODEX_HOME:-~/.codex}/prompts`
+  - `~/.config/opencode/commands`
+  - `~/.config/google-antigravity/commands`
 
 - `npm run uninstall` - удаляет из целевых папок файлы команд, перечисленные в `dist/**`
 
@@ -88,3 +94,5 @@ npm run link:windsurf
 - Cursor global commands: `~/.cursor/commands`
 - Codex custom prompts: `~/.codex/prompts` (или `$CODEX_HOME/prompts`)
 - Windsurf workflows: `.windsurf/workflows` (workspace-level)
+- OpenCode commands: `~/.config/opencode/commands`
+- Google Antigravity commands: `~/.config/google-antigravity/commands`
