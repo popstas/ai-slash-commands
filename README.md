@@ -83,7 +83,7 @@ npm run link:windsurf
   - `~/.windsurf/workflows` (хранилище, дальше линк)
   - `${CODEX_HOME:-~/.codex}/prompts`
   - `~/.config/opencode/commands`
-  - `~/.config/google-antigravity/commands`
+  - `~/.gemini/antigravity/global_workflows`
 
 - `npm run uninstall` - удаляет из целевых папок файлы команд, перечисленные в `dist/**`
 
@@ -95,4 +95,4 @@ npm run link:windsurf
 - Codex custom prompts: `~/.codex/prompts` (или `$CODEX_HOME/prompts`)
 - Windsurf workflows: `.windsurf/workflows` (workspace-level)
 - OpenCode commands: `~/.config/opencode/commands`
-- Google Antigravity commands: `~/.config/google-antigravity/commands`
+- Google Antigravity commands: `~/.gemini/antigravity/global_workflows`

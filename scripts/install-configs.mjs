@@ -22,7 +22,7 @@ const DEST = {
   // Codex supports CODEX_HOME (defaults to ~/.codex). Prompts live under $CODEX_HOME/prompts.
   codex:    path.join(process.env.CODEX_HOME ?? path.join(home, ".codex"), "prompts"),
   opencode: path.join(home, ".config", "opencode", "commands"),
-  antigravity: path.join(home, ".config", "google-antigravity", "commands"),
+  antigravity: path.join(home, ".gemini", "antigravity", "global_workflows"),
 };
 
 const SRC = {

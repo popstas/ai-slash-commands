@@ -33,6 +33,28 @@ async function ensureDir(p) {
   await fs.mkdir(p, { recursive: true });
 }
 
+function descriptionFromFirstLine(firstLine) {
+  const trimmed = firstLine.trim().replace(/^#+\s*/, "");
+  if (trimmed.includes("-")) {
+    const parts = trimmed.split("-").map((s) => s.trim());
+    return parts.slice(1).join(" - ").trim() || trimmed;
+  }
+  return trimmed || "No description";
+}
+
+function toAntigravityContent(content) {
+  const lines = content.split("\n");
+  const firstLine = lines[0]?.trim() ?? "";
+  const description = descriptionFromFirstLine(firstLine);
+  const body = lines.slice(1).join("\n").trimEnd();
+  return `---
+description: ${description}
+---
+
+${body}
+`;
+}
+
 async function listPromptFiles(promptsDir) {
   const entries = await fs.readdir(promptsDir, { withFileTypes: true });
   return entries
@@ -51,8 +73,8 @@ async function generateCommandsReadme(promptsDir) {
     const srcPath = path.join(promptsDir, name);
     const content = await fs.readFile(srcPath, "utf8");
     const commandName = name.replace(/\.md$/i, "");
-    const firstLine = content.split("\n")[0].trim();
-    const description = firstLine || "No description";
+    const firstLine = content.split("\n")[0] ?? "";
+    const description = descriptionFromFirstLine(firstLine);
     commands.push({ name: commandName, description, filename: name });
   }
 
@@ -99,7 +121,13 @@ export async function generate({ targets, promptsDir }) {
 
     for (const t of targets) {
       const outPath = path.join(distDir, TARGETS[t].out, name);
-      await fs.writeFile(outPath, content.endsWith("\n") ? content : content + "\n", "utf8");
+      const outContent =
+        t === "antigravity"
+          ? toAntigravityContent(content)
+          : content.endsWith("\n")
+            ? content
+            : content + "\n";
+      await fs.writeFile(outPath, outContent, "utf8");
     }
   }
 
