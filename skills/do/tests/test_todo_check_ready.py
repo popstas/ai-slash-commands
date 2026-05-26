@@ -33,6 +33,16 @@ class TaskCountingTests(unittest.TestCase):
     def test_prose_only_is_zero(self):
         self.assertEqual(mod.count_task_units("# Title\n\njust words here\n"), 0)
 
+    def test_completed_items_not_counted(self):
+        # All work done: heading title skipped, checked items excluded.
+        text = "# T\n- [x] done a\n- [X] done b\n"
+        self.assertEqual(mod.count_task_units(text), 0)
+        self.assertFalse(mod.is_ready(text, 1))
+
+    def test_mixed_counts_only_open_items(self):
+        text = "# T\n- [ ] open\n- [x] done\n- another open\n"
+        self.assertEqual(mod.count_task_units(text), 2)
+
 
 class ReadinessThresholdTests(unittest.TestCase):
     def test_below_threshold(self):
@@ -85,7 +95,7 @@ class BuildMessageTests(unittest.TestCase):
             msg = mod.build_message(project, todo)
             project_abs = str(project.resolve())
             self.assertTrue(Path(project_abs).is_absolute())
-            self.assertIn(f'cd {project_abs} && claude "{mod.ADOPT_PROMPT}"', msg)
+            self.assertIn(f'cd "{project_abs}" && claude "{mod.ADOPT_PROMPT}"', msg)
 
     def test_contains_percent_encoded_custom_scheme_url(self):
         with tempfile.TemporaryDirectory() as tmp:

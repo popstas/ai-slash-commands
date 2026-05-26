@@ -65,13 +65,16 @@ def default_state_dir() -> Path:
 # ---------------------------------------------------------------------------
 
 _LIST_ITEM = re.compile(r"^\s*[-*] (\[[ xX]\] )?\S")
+_CHECKED_ITEM = re.compile(r"^\s*[-*] \[[xX]\] ")
 _HEADING = re.compile(r"^#{1,3} \S")
 
 
 def count_task_units(text: str) -> int:
-    """Count "task units": markdown list items plus level 1-3 headings.
+    """Count open "task units": markdown list items plus level 1-3 headings.
 
     The first heading is treated as the document title and not counted.
+    Completed checkbox items (``- [x]``) are work already done, so they are
+    not counted — otherwise a fully-checked list would still trigger a nudge.
     """
     count = 0
     seen_title = False
@@ -82,6 +85,8 @@ def count_task_units(text: str) -> int:
                 continue
             count += 1
         elif _LIST_ITEM.match(line):
+            if _CHECKED_ITEM.match(line):
+                continue
             count += 1
     return count
 
@@ -165,7 +170,7 @@ def build_message(project_dir: Path, todo_path: Path) -> str:
     except ValueError:
         rel_todo = Path(todo_path).name
     adopt_prompt = f"/ralphex:ralphex-adopt {rel_todo}"
-    command = f'cd {project_abs} && claude "{adopt_prompt}"'
+    command = f'cd "{project_abs}" && claude "{adopt_prompt}"'
     # telegram-send posts with legacy Markdown parse mode, where a literal `_`
     # opens an italic entity. quote() leaves `_` unescaped, so a project path
     # like /srv/my_app would yield an unbalanced entity and a 400 from Telegram.
