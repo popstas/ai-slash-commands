@@ -103,7 +103,11 @@ async function listSkillDirs(dir) {
 export async function installSkills() {
   const names = await listSkillDirs(SKILLS_SRC);
   for (const name of names) {
-    await copyDirPreserveMode(path.join(SKILLS_SRC, name), path.join(SKILLS_DEST, name));
+    const destSkillDir = path.join(SKILLS_DEST, name);
+    // Clear the destination first so files removed/renamed upstream do not
+    // linger as stale copies on reinstall (mirrors gen.mjs and uninstall).
+    await fs.rm(destSkillDir, { recursive: true, force: true });
+    await copyDirPreserveMode(path.join(SKILLS_SRC, name), destSkillDir);
   }
   console.log(`claude: installed ${names.length} skill(s) -> ${SKILLS_DEST}`);
   return names.length;

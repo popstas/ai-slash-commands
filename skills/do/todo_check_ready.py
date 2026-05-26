@@ -27,7 +27,6 @@ import os
 import re
 import subprocess
 import sys
-import time
 from datetime import datetime, timezone
 from pathlib import Path
 from urllib.parse import quote
@@ -347,10 +346,14 @@ def main(argv=None) -> int:
     args = parser.parse_args(argv)
 
     config = config_from_env()
-    config["dry_run"] = args.dry_run
+    # DRY_RUN=1 in the environment must prevent sending, not merely gate the
+    # print below; otherwise an operator expecting a preview would trigger a
+    # real Telegram send plus state/PATH mutation.
+    dry_run = args.dry_run or os.environ.get("DRY_RUN") == "1"
+    config["dry_run"] = dry_run
 
     result = run(config)
-    if result["message"] and (args.dry_run or os.environ.get("DRY_RUN") == "1"):
+    if result["message"] and dry_run:
         print(result["message"])
     if result["reason"] == "send-failed":
         return 1

@@ -74,8 +74,12 @@ fi
 mkdir -p "$LOG_DIR" 2>/dev/null || true
 
 # Idempotent install: drop any existing line for this project, then append.
+# Match the marker as an exact line *suffix* (not a substring): a plain
+# substring match would treat "...do /tmp/proj" as present in a sibling line
+# "...do /tmp/proj-extra" and wipe out that other project's cron entry.
 EXISTING="$(crontab -l 2>/dev/null || true)"
-NEW="$(printf '%s\n' "$EXISTING" | grep -v -F "$MARKER" || true)"
+NEW="$(printf '%s\n' "$EXISTING" | awk -v m="$MARKER" \
+  'length($0) < length(m) || substr($0, length($0) - length(m) + 1) != m' || true)"
 {
   printf '%s\n' "$NEW" | sed '/^$/d'
   printf '%s\n' "$CRON_LINE"
