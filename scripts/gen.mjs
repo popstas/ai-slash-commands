@@ -56,6 +56,19 @@ ${body}
 `;
 }
 
+// Like toAntigravityContent, but uses an explicit description (parsed from a
+// SKILL.md frontmatter) so a description containing hyphens is not mangled by
+// the H1 `# name - description` heuristic. Drops the shim's first (H1) line.
+function toAntigravityFrontmatter(description, shimContent) {
+  const body = shimContent.split("\n").slice(1).join("\n").trimEnd();
+  return `---
+description: ${description}
+---
+
+${body}
+`;
+}
+
 // Parse leading `--- ... ---` YAML-ish frontmatter from a SKILL.md.
 // Returns { data: { key: value, ... }, body: "<content after frontmatter>" }.
 // If no frontmatter is present, data is {} and body is the original content.
@@ -167,15 +180,26 @@ export async function generateSkills({ targets, skillsDir: dir = skillsDir }) {
     await fs.rm(destSkillDir, { recursive: true, force: true });
     await fs.cp(srcSkillDir, destSkillDir, {
       recursive: true,
-      filter: (src) => !src.includes("__pycache__"),
+      filter: (src) => {
+        const parts = src.split(path.sep);
+        return !parts.includes("__pycache__") && !parts.includes("tests");
+      },
     });
 
     const content = await fs.readFile(path.join(srcSkillDir, "SKILL.md"), "utf8");
     const shim = skillToCommand(name, content);
+    // Build the antigravity frontmatter from the parsed description, not by
+    // re-deriving it from the shim's H1 — the H1 separator collides with any
+    // hyphens in the description and would mangle it.
+    const { data } = parseFrontmatter(content);
+    const antigravityContent = toAntigravityFrontmatter(
+      data.description || "No description",
+      shim,
+    );
 
     for (const t of targets) {
       const outPath = path.join(distDir, TARGETS[t].out, `${name}.md`);
-      const outContent = t === "antigravity" ? toAntigravityContent(shim) : shim;
+      const outContent = t === "antigravity" ? antigravityContent : shim;
       await ensureDir(path.dirname(outPath));
       await fs.writeFile(outPath, outContent, "utf8");
     }

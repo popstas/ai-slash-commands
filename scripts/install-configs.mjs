@@ -72,7 +72,7 @@ async function copyDirPreserveMode(srcDir, dstDir) {
   await ensureDir(dstDir);
   const entries = await fs.readdir(srcDir, { withFileTypes: true });
   for (const e of entries) {
-    if (e.name === "__pycache__") {
+    if (e.name === "__pycache__" || e.name === "tests") {
       continue;
     }
     const src = path.join(srcDir, e.name);

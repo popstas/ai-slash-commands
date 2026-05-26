@@ -41,7 +41,7 @@ MARKER="# ai-slash-commands:do ${PROJECT_DIR}"
 
 # ~daily: 09:17 every day (minute chosen off the :00/:30 mark).
 SCHEDULE="17 9 * * *"
-CRON_LINE="${SCHEDULE} cd ${PROJECT_DIR} && DO_PROJECT_DIR=${PROJECT_DIR} ${PYTHON} ${CHECKER} ${MARKER}"
+CRON_LINE="${SCHEDULE} cd \"${PROJECT_DIR}\" && DO_PROJECT_DIR=\"${PROJECT_DIR}\" \"${PYTHON}\" \"${CHECKER}\" ${MARKER}"
 
 if [ "$PRINT_ONLY" -eq 1 ]; then
   echo "$CRON_LINE"

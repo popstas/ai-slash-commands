@@ -145,7 +145,7 @@ def plan_already_exists(project_dir: Path) -> bool:
 
 
 # ---------------------------------------------------------------------------
-# Message building (enriched in Task 3)
+# Message building
 # ---------------------------------------------------------------------------
 
 ADOPT_PROMPT = "/ralphex:ralphex-adopt docs/TODO.md"
@@ -156,9 +156,14 @@ def build_message(project_dir: Path, todo_path: Path) -> str:
     text = todo_path.read_text(encoding="utf-8") if Path(todo_path).exists() else ""
     n = count_task_units(text)
     command = f'cd {project_abs} && claude "{ADOPT_PROMPT}"'
+    # telegram-send posts with legacy Markdown parse mode, where a literal `_`
+    # opens an italic entity. quote() leaves `_` unescaped, so a project path
+    # like /srv/my_app would yield an unbalanced entity and a 400 from Telegram.
+    # Percent-encode `_` too; the receiver decodes it back to the same path.
+    cwd_q = quote(project_abs, safe="").replace("_", "%5F")
     url = (
         "claude-code://open"
-        f"?cwd={quote(project_abs, safe='')}"
+        f"?cwd={cwd_q}"
         f"&prompt={quote(ADOPT_PROMPT, safe='')}"
     )
     return (
@@ -225,20 +230,6 @@ def ensure_telegram_send(local_bin: Path | None = None) -> str | None:
         return str(link)
     except OSError:
         return str(bundled)
-
-
-# Backwards-compatible alias used elsewhere / in tests.
-def find_telegram_send() -> str | None:
-    """Resolve telegram-send from PATH or the bundled copy next to this file."""
-    from shutil import which
-
-    found = which("telegram-send")
-    if found:
-        return found
-    bundled = bundled_telegram_send()
-    if bundled.exists():
-        return str(bundled)
-    return None
 
 
 def send_telegram(message: str, sender=None) -> bool:

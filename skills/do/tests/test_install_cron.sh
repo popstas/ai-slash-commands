@@ -56,6 +56,19 @@ esac
 n="$(printf '%s\n' "$line" | wc -l | tr -d ' ')"
 [ "$n" = "1" ] && pass "single line emitted" || fail "expected one line, got $n"
 
+# 5. A project path containing spaces must be quoted so the cron command
+#    cd's into the right directory instead of splitting on the space.
+SPACED="/tmp/space dir/proj"
+sline="$($INSTALL --print --project "$SPACED")"
+case "$sline" in
+  *"cd \"$SPACED\""*) pass "spaced project dir is quoted in cd" ;;
+  *) fail "spaced project dir not quoted: $sline" ;;
+esac
+case "$sline" in
+  *"DO_PROJECT_DIR=\"$SPACED\""*) pass "spaced DO_PROJECT_DIR is quoted" ;;
+  *) fail "spaced DO_PROJECT_DIR not quoted: $sline" ;;
+esac
+
 if [ "$FAILED" -eq 0 ]; then
   echo "All install-cron tests passed."
   exit 0

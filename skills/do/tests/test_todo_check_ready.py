@@ -112,6 +112,19 @@ class BuildMessageTests(unittest.TestCase):
             self.assertIn("claude ", msg)  # copy-paste command form
             self.assertIn("claude-code://", msg)  # custom-scheme URL form
 
+    def test_url_percent_encodes_underscores_in_path(self):
+        # Underscores in the project path would otherwise open a Markdown
+        # italic entity and make Telegram reject the message.
+        with tempfile.TemporaryDirectory() as tmp:
+            project = Path(tmp) / "my_cool_project"
+            (project / "docs").mkdir(parents=True)
+            todo = project / "docs" / "TODO.md"
+            todo.write_text(SAMPLE, encoding="utf-8")
+            msg = mod.build_message(project, todo)
+            url_line = next(ln for ln in msg.splitlines() if "claude-code://" in ln)
+            self.assertIn("my%5Fcool%5Fproject", url_line)
+            self.assertNotIn("_", url_line)
+
 
 class RunTests(unittest.TestCase):
     def _project(self, tmp, todo_text):
@@ -184,6 +197,17 @@ class RunTests(unittest.TestCase):
             self.assertFalse(result["notified"])
             self.assertIsNotNone(result["message"])
             self.assertEqual(calls, [])
+
+    def test_send_failure_does_not_save_state(self):
+        # A failed send must not persist state, so the next run retries.
+        with tempfile.TemporaryDirectory() as tmp:
+            project = self._project(tmp, SAMPLE)
+            cfg = self._config(project, tmp)
+            result = mod.run(cfg, sender=lambda m: False)
+            self.assertTrue(result["ready"])
+            self.assertFalse(result["notified"])
+            self.assertEqual(result["reason"], "send-failed")
+            self.assertFalse(mod.state_path(Path(cfg["state_dir"]), project).exists())
 
     def test_plan_exists_skips(self):
         with tempfile.TemporaryDirectory() as tmp:
