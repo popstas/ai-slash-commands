@@ -7,6 +7,7 @@ const __dirname = path.dirname(__filename);
 
 const repoRoot = path.resolve(__dirname, "..");
 const defaultPromptsDir = path.join(repoRoot, "prompts");
+const skillsDir = path.join(repoRoot, "skills");
 const distDir = path.join(repoRoot, "dist");
 
 const TARGETS = {
@@ -55,6 +56,34 @@ ${body}
 `;
 }
 
+// Parse leading `--- ... ---` YAML-ish frontmatter from a SKILL.md.
+// Returns { data: { key: value, ... }, body: "<content after frontmatter>" }.
+// If no frontmatter is present, data is {} and body is the original content.
+export function parseFrontmatter(content) {
+  const normalized = content.replace(/^﻿/, "");
+  const match = normalized.match(/^---\r?\n([\s\S]*?)\r?\n---\r?\n?/);
+  if (!match) {
+    return { data: {}, body: normalized };
+  }
+  const data = {};
+  for (const line of match[1].split(/\r?\n/)) {
+    const m = line.match(/^([A-Za-z0-9_-]+)\s*:\s*(.*)$/);
+    if (m) {
+      data[m[1]] = m[2].trim();
+    }
+  }
+  const body = normalized.slice(match[0].length);
+  return { data, body };
+}
+
+// Convert a SKILL.md into a command-prompt shim: strip frontmatter and
+// prepend `# <name> - <description>` so /<name> works in every editor target.
+export function skillToCommand(name, content) {
+  const { data, body } = parseFrontmatter(content);
+  const description = data.description || "No description";
+  return `# ${name} - ${description}\n\n${body.replace(/^\n+/, "").trimEnd()}\n`;
+}
+
 async function listPromptFiles(promptsDir) {
   const entries = await fs.readdir(promptsDir, { withFileTypes: true });
   return entries
@@ -97,6 +126,65 @@ async function generateCommandsReadme(promptsDir) {
   console.log(`Generated: ${path.relative(repoRoot, readmePath)}`);
 }
 
+async function listSkillNames(dir) {
+  let entries;
+  try {
+    entries = await fs.readdir(dir, { withFileTypes: true });
+  } catch {
+    return [];
+  }
+  const names = [];
+  for (const e of entries) {
+    if (!e.isDirectory()) continue;
+    const skillFile = path.join(dir, e.name, "SKILL.md");
+    try {
+      await fs.access(skillFile);
+      names.push(e.name);
+    } catch {
+      // directory without a SKILL.md — not a skill
+    }
+  }
+  return names.sort();
+}
+
+// Generate skill outputs:
+// - copy each skills/<name>/ recursively to dist/claude/skills/<name>/
+//   (Claude consumes skills natively)
+// - emit a command shim dist/<target>/<commandsDir>/<name>.md for every target
+//   so /<name> works in all editors.
+export async function generateSkills({ targets, skillsDir: dir = skillsDir }) {
+  const names = await listSkillNames(dir);
+  if (names.length === 0) {
+    return [];
+  }
+
+  const distSkillsDir = path.join(distDir, "claude", "skills");
+  await ensureDir(distSkillsDir);
+
+  for (const name of names) {
+    const srcSkillDir = path.join(dir, name);
+    const destSkillDir = path.join(distSkillsDir, name);
+    await fs.rm(destSkillDir, { recursive: true, force: true });
+    await fs.cp(srcSkillDir, destSkillDir, {
+      recursive: true,
+      filter: (src) => !src.includes("__pycache__"),
+    });
+
+    const content = await fs.readFile(path.join(srcSkillDir, "SKILL.md"), "utf8");
+    const shim = skillToCommand(name, content);
+
+    for (const t of targets) {
+      const outPath = path.join(distDir, TARGETS[t].out, `${name}.md`);
+      const outContent = t === "antigravity" ? toAntigravityContent(shim) : shim;
+      await ensureDir(path.dirname(outPath));
+      await fs.writeFile(outPath, outContent, "utf8");
+    }
+  }
+
+  console.log(`Generated skills: ${names.join(", ")}`);
+  return names;
+}
+
 export async function generate({ targets, promptsDir }) {
   const promptFiles = await listPromptFiles(promptsDir);
   if (promptFiles.length === 0) {
@@ -133,6 +221,9 @@ export async function generate({ targets, promptsDir }) {
 
   // Generate commands README in prompts directory
   await generateCommandsReadme(promptsDir);
+
+  // Generate skill outputs (skills/<name>/ → dist/claude/skills + per-target shims)
+  await generateSkills({ targets });
 
   console.log("Generated:");
   for (const t of targets) {

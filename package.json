@@ -10,6 +10,7 @@
     "install-configs": "node scripts/install-configs.mjs",
     "gen-install": "npm run gen && npm run install-configs",
     "uninstall": "node scripts/uninstall.mjs",
-    "link:windsurf": "node scripts/link-windsurf.mjs"
+    "link:windsurf": "node scripts/link-windsurf.mjs",
+    "test": "node --test \"scripts/tests/**/*.test.mjs\" && python3 -m unittest discover skills/do/tests && sh skills/do/tests/test_telegram_send.sh"
   }
 }
