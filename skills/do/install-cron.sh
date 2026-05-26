@@ -39,14 +39,39 @@ PYTHON="$(command -v python3 || command -v python || echo python3)"
 # Marker keys this line to the project so re-runs replace rather than duplicate.
 MARKER="# ai-slash-commands:do ${PROJECT_DIR}"
 
+# Log directory mirrors the checker's default state dir.
+LOG_DIR="${DO_STATE_DIR:-$HOME/.cache/ai-slash-commands/do}"
+LOG_FILE="${LOG_DIR}/cron.log"
+
+# cron runs with a minimal environment that does not inherit the shell's
+# TELEGRAM_* vars, so embed them into the line when they are set at install
+# time. Without them the checker can never send the nudge it exists to send.
+ENV_PREFIX="DO_PROJECT_DIR=\"${PROJECT_DIR}\""
+if [ -n "${TELEGRAM_TOKEN:-}" ]; then
+  ENV_PREFIX="TELEGRAM_TOKEN=\"${TELEGRAM_TOKEN}\" ${ENV_PREFIX}"
+fi
+if [ -n "${TELEGRAM_CHAT_ID:-}" ]; then
+  ENV_PREFIX="TELEGRAM_CHAT_ID=\"${TELEGRAM_CHAT_ID}\" ${ENV_PREFIX}"
+fi
+if [ -z "${TELEGRAM_TOKEN:-}" ] || [ -z "${TELEGRAM_CHAT_ID:-}" ]; then
+  echo "install-cron.sh: warning: TELEGRAM_TOKEN / TELEGRAM_CHAT_ID not set in" \
+       "the current environment, so the cron line will not be able to send a" \
+       "notification. Re-run with them exported, or edit the crontab line to" \
+       "add them." >&2
+fi
+
 # ~daily: 09:17 every day (minute chosen off the :00/:30 mark).
 SCHEDULE="17 9 * * *"
-CRON_LINE="${SCHEDULE} cd \"${PROJECT_DIR}\" && DO_PROJECT_DIR=\"${PROJECT_DIR}\" \"${PYTHON}\" \"${CHECKER}\" ${MARKER}"
+CRON_LINE="${SCHEDULE} cd \"${PROJECT_DIR}\" && ${ENV_PREFIX} \"${PYTHON}\" \"${CHECKER}\" >> \"${LOG_FILE}\" 2>&1 ${MARKER}"
 
 if [ "$PRINT_ONLY" -eq 1 ]; then
   echo "$CRON_LINE"
   exit 0
 fi
+
+# The redirect appends to LOG_FILE, so its directory must exist before cron
+# runs the line, otherwise the whole command fails before the checker starts.
+mkdir -p "$LOG_DIR" 2>/dev/null || true
 
 # Idempotent install: drop any existing line for this project, then append.
 EXISTING="$(crontab -l 2>/dev/null || true)"

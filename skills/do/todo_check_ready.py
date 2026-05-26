@@ -155,7 +155,17 @@ def build_message(project_dir: Path, todo_path: Path) -> str:
     project_abs = str(Path(project_dir).resolve())
     text = todo_path.read_text(encoding="utf-8") if Path(todo_path).exists() else ""
     n = count_task_units(text)
-    command = f'cd {project_abs} && claude "{ADOPT_PROMPT}"'
+    # Reflect the configured task-list path (DO_TODO_PATH) in the command/URL/text
+    # rather than a hardcoded docs/TODO.md, so a custom path points the user at
+    # the file that was actually evaluated.
+    try:
+        rel_todo = (
+            Path(todo_path).resolve().relative_to(Path(project_dir).resolve()).as_posix()
+        )
+    except ValueError:
+        rel_todo = Path(todo_path).name
+    adopt_prompt = f"/ralphex:ralphex-adopt {rel_todo}"
+    command = f'cd {project_abs} && claude "{adopt_prompt}"'
     # telegram-send posts with legacy Markdown parse mode, where a literal `_`
     # opens an italic entity. quote() leaves `_` unescaped, so a project path
     # like /srv/my_app would yield an unbalanced entity and a 400 from Telegram.
@@ -164,10 +174,10 @@ def build_message(project_dir: Path, todo_path: Path) -> str:
     url = (
         "claude-code://open"
         f"?cwd={cwd_q}"
-        f"&prompt={quote(ADOPT_PROMPT, safe='')}"
+        f"&prompt={quote(adopt_prompt, safe='')}"
     )
     return (
-        f"📋 *TODO ready* — {n} task units queued in `docs/TODO.md`.\n\n"
+        f"📋 *TODO ready* — {n} task units queued in `{rel_todo}`.\n\n"
         f"Open & adopt:\n`{command}`\n\n"
         f"Or: {url}\n\n"
         f"After the adopt plan is approved, run `/ralphex:ralphex`.\n"

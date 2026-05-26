@@ -125,6 +125,21 @@ class BuildMessageTests(unittest.TestCase):
             self.assertIn("my%5Fcool%5Fproject", url_line)
             self.assertNotIn("_", url_line)
 
+    def test_custom_todo_path_appears_in_message(self):
+        # A non-default DO_TODO_PATH must be reflected in the command, URL, and
+        # summary text instead of a hardcoded docs/TODO.md.
+        with tempfile.TemporaryDirectory() as tmp:
+            project = Path(tmp) / "proj"
+            (project / "tasks").mkdir(parents=True)
+            todo = project / "tasks" / "backlog.md"
+            todo.write_text(SAMPLE, encoding="utf-8")
+            msg = mod.build_message(project, todo)
+            self.assertIn("tasks/backlog.md", msg)
+            self.assertIn("ralphex-adopt tasks/backlog.md", msg)
+            self.assertNotIn("docs/TODO.md", msg)
+            url_line = next(ln for ln in msg.splitlines() if "claude-code://" in ln)
+            self.assertIn("tasks%2Fbacklog.md", url_line)
+
 
 class RunTests(unittest.TestCase):
     def _project(self, tmp, todo_text):

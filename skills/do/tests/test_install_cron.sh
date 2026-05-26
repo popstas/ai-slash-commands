@@ -69,6 +69,24 @@ case "$sline" in
   *) fail "spaced DO_PROJECT_DIR not quoted: $sline" ;;
 esac
 
+# 6. When TELEGRAM_* are set in the environment, they must be embedded in the
+#    line so cron's minimal environment can still send the notification.
+tline="$(TELEGRAM_TOKEN=tok123 TELEGRAM_CHAT_ID=42 "$INSTALL" --print --project "$PROJ" 2>/dev/null)"
+case "$tline" in
+  *'TELEGRAM_TOKEN="tok123"'*) pass "telegram token embedded" ;;
+  *) fail "telegram token not embedded: $tline" ;;
+esac
+case "$tline" in
+  *'TELEGRAM_CHAT_ID="42"'*) pass "telegram chat id embedded" ;;
+  *) fail "telegram chat id not embedded: $tline" ;;
+esac
+
+# 7. The line must redirect output to a log file so cron does not mail stderr.
+case "$line" in
+  *'cron.log'*) pass "log redirect present" ;;
+  *) fail "log redirect missing: $line" ;;
+esac
+
 if [ "$FAILED" -eq 0 ]; then
   echo "All install-cron tests passed."
   exit 0
