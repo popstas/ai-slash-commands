@@ -70,6 +70,48 @@ class DebounceTests(unittest.TestCase):
             self.assertIn("notified_at", loaded)
 
 
+class BuildMessageTests(unittest.TestCase):
+    def _write_todo(self, tmp):
+        project = Path(tmp) / "proj"
+        (project / "docs").mkdir(parents=True)
+        todo = project / "docs" / "TODO.md"
+        todo.write_text(SAMPLE, encoding="utf-8")
+        return project, todo
+
+    def test_contains_copy_paste_command_with_absolute_path(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            project, todo = self._write_todo(tmp)
+            msg = mod.build_message(project, todo)
+            project_abs = str(project.resolve())
+            self.assertTrue(Path(project_abs).is_absolute())
+            self.assertIn(f'cd {project_abs} && claude "{mod.ADOPT_PROMPT}"', msg)
+
+    def test_contains_percent_encoded_custom_scheme_url(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            project, todo = self._write_todo(tmp)
+            msg = mod.build_message(project, todo)
+            self.assertIn("claude-code://open?cwd=", msg)
+            # the prompt has spaces and a slash; both must be percent-encoded
+            self.assertIn("prompt=%2Fralphex%3Aralphex-adopt%20docs%2FTODO.md", msg)
+            # a raw space from the prompt must not leak into the URL
+            self.assertNotIn("prompt=/ralphex:ralphex-adopt docs/TODO.md", msg)
+
+    def test_mentions_task_count_and_todo_prefix_and_ralphex(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            project, todo = self._write_todo(tmp)
+            msg = mod.build_message(project, todo)
+            self.assertIn(str(mod.count_task_units(SAMPLE)), msg)
+            self.assertIn("todo:", msg)
+            self.assertIn("/ralphex:ralphex", msg)
+
+    def test_both_link_forms_present(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            project, todo = self._write_todo(tmp)
+            msg = mod.build_message(project, todo)
+            self.assertIn("claude ", msg)  # copy-paste command form
+            self.assertIn("claude-code://", msg)  # custom-scheme URL form
+
+
 class RunTests(unittest.TestCase):
     def _project(self, tmp, todo_text):
         project = Path(tmp) / "proj"
