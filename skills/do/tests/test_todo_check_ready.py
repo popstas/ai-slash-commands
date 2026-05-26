@@ -1,4 +1,5 @@
 """Unit tests for todo_check_ready.py (stdlib unittest, no network)."""
+import os
 import sys
 import tempfile
 import unittest
@@ -192,6 +193,44 @@ class RunTests(unittest.TestCase):
             result = mod.run(self._config(project, tmp), sender=lambda m: True)
             self.assertTrue(result["ready"])
             self.assertEqual(result["reason"], "plan-exists")
+
+
+class EnsureTelegramSendTests(unittest.TestCase):
+    def test_prefers_path_when_present(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            bin_dir = Path(tmp) / "bin"
+            bin_dir.mkdir()
+            onpath = bin_dir / "telegram-send"
+            onpath.write_text("#!/bin/sh\n", encoding="utf-8")
+            onpath.chmod(0o755)
+            old_path = os.environ.get("PATH", "")
+            os.environ["PATH"] = f"{bin_dir}{os.pathsep}{old_path}"
+            try:
+                resolved = mod.ensure_telegram_send(local_bin=Path(tmp) / "local")
+            finally:
+                os.environ["PATH"] = old_path
+            self.assertEqual(resolved, str(onpath))
+            # Nothing was linked into local_bin since PATH already had it.
+            self.assertFalse((Path(tmp) / "local" / "telegram-send").exists())
+
+    def test_symlinks_bundled_into_local_bin_when_missing(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            local_bin = Path(tmp) / "local" / "bin"
+            empty = Path(tmp) / "empty"
+            empty.mkdir()
+            old_path = os.environ.get("PATH", "")
+            os.environ["PATH"] = str(empty)  # ensure telegram-send is NOT on PATH
+            try:
+                resolved = mod.ensure_telegram_send(local_bin=local_bin)
+            finally:
+                os.environ["PATH"] = old_path
+            link = local_bin / "telegram-send"
+            self.assertEqual(resolved, str(link))
+            self.assertTrue(link.is_symlink())
+            self.assertEqual(
+                link.resolve(), mod.bundled_telegram_send().resolve()
+            )
+            self.assertTrue(os.access(str(link), os.X_OK))
 
 
 if __name__ == "__main__":

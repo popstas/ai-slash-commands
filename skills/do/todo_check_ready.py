@@ -175,6 +175,59 @@ def build_message(project_dir: Path, todo_path: Path) -> str:
 # ---------------------------------------------------------------------------
 
 
+def bundled_telegram_send() -> Path:
+    """Path to the telegram-send wrapper shipped next to this script."""
+    return Path(__file__).resolve().parent / "telegram-send"
+
+
+def default_local_bin() -> Path:
+    return Path.home() / ".local" / "bin"
+
+
+def ensure_telegram_send(local_bin: Path | None = None) -> str | None:
+    """Resolve telegram-send, self-healing onto PATH when missing.
+
+    Resolution order:
+      1. an existing ``telegram-send`` on PATH;
+      2. otherwise symlink the bundled copy into ``local_bin`` (default
+         ``~/.local/bin``), creating the dir and making the target executable,
+         and return that link so future runs find it on PATH;
+      3. fall back to the bundled copy directly if linking is not possible.
+    """
+    from shutil import which
+
+    found = which("telegram-send")
+    if found:
+        return found
+
+    bundled = bundled_telegram_send()
+    if not bundled.exists():
+        return None
+
+    # Make sure the bundled script itself is executable.
+    try:
+        mode = bundled.stat().st_mode
+        os.chmod(bundled, mode | 0o111)
+    except OSError:
+        pass
+
+    target_dir = Path(local_bin) if local_bin is not None else default_local_bin()
+    link = target_dir / "telegram-send"
+    try:
+        target_dir.mkdir(parents=True, exist_ok=True)
+        if link.is_symlink() or link.exists():
+            # Refresh a stale/foreign entry only if it is our symlink.
+            if link.is_symlink():
+                link.unlink()
+            else:
+                return str(link)
+        link.symlink_to(bundled)
+        return str(link)
+    except OSError:
+        return str(bundled)
+
+
+# Backwards-compatible alias used elsewhere / in tests.
 def find_telegram_send() -> str | None:
     """Resolve telegram-send from PATH or the bundled copy next to this file."""
     from shutil import which
@@ -182,7 +235,7 @@ def find_telegram_send() -> str | None:
     found = which("telegram-send")
     if found:
         return found
-    bundled = Path(__file__).resolve().parent / "telegram-send"
+    bundled = bundled_telegram_send()
     if bundled.exists():
         return str(bundled)
     return None
@@ -192,7 +245,7 @@ def send_telegram(message: str, sender=None) -> bool:
     """Send ``message`` via telegram-send. ``sender`` is injectable for tests."""
     if sender is not None:
         return bool(sender(message))
-    exe = find_telegram_send()
+    exe = ensure_telegram_send()
     if not exe:
         print("todo_check_ready: telegram-send not found", file=sys.stderr)
         return False
