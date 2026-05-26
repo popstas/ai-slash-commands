@@ -34,6 +34,10 @@ const SRC = {
   antigravity: path.join(distDir, "antigravity", "commands"),
 };
 
+// Skills are Claude-native and ship as whole directories.
+const SKILLS_SRC = path.join(distDir, "claude", "skills");
+const SKILLS_DEST = path.join(home, ".claude", "skills");
+
 async function listMd(dir) {
   try {
     const entries = await fs.readdir(dir, { withFileTypes: true });
@@ -67,6 +71,37 @@ async function removeAll(srcDir, dstDir) {
   return { removed, total: files.length };
 }
 
+async function listSkillDirs(dir) {
+  try {
+    const entries = await fs.readdir(dir, { withFileTypes: true });
+    return entries.filter(e => e.isDirectory()).map(e => e.name);
+  } catch (err) {
+    if (err.code === "ENOENT") {
+      return [];
+    }
+    throw err;
+  }
+}
+
+// Remove installed skill dirs that mirror dist/claude/skills/<name>/.
+export async function uninstallSkills() {
+  const names = await listSkillDirs(SKILLS_SRC);
+  let removed = 0;
+  for (const name of names) {
+    const dst = path.join(SKILLS_DEST, name);
+    try {
+      await fs.rm(dst, { recursive: true, force: true });
+      removed += 1;
+    } catch (err) {
+      if (err.code !== "ENOENT") {
+        throw err;
+      }
+    }
+  }
+  console.log(`claude: removed ${removed}/${names.length} skill(s) from ${SKILLS_DEST}`);
+  return removed;
+}
+
 function parseArgs() {
   const idx = process.argv.indexOf("--targets");
   const raw = idx >= 0 ? process.argv[idx + 1] : "claude,cursor,windsurf,codex,opencode,antigravity";
@@ -86,6 +121,11 @@ export async function uninstall({ targets }) {
     const { removed, total } = await removeAll(SRC[t], DEST[t]);
     const note = total === 0 ? " (no source prompts found)" : "";
     console.log(`${t}: removed ${removed}/${total} prompt(s) from ${DEST[t]}${note}`);
+  }
+
+  // Skills are Claude-native; remove them whenever the claude target is selected.
+  if (targets.includes("claude")) {
+    await uninstallSkills();
   }
 }
 

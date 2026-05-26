@@ -34,6 +34,10 @@ const SRC = {
   antigravity: path.join(distDir, "antigravity", "commands"),
 };
 
+// Skills are Claude-native and ship as whole directories.
+const SKILLS_SRC = path.join(distDir, "claude", "skills");
+const SKILLS_DEST = path.join(home, ".claude", "skills");
+
 async function ensureDir(p) {
   await fs.mkdir(p, { recursive: true });
 }
@@ -62,6 +66,49 @@ async function copyAll(srcDir, dstDir) {
   return files.length;
 }
 
+// Recursively copy a directory, preserving each source file's mode so that
+// executable bits on *.py / *.sh / telegram-send survive the install.
+async function copyDirPreserveMode(srcDir, dstDir) {
+  await ensureDir(dstDir);
+  const entries = await fs.readdir(srcDir, { withFileTypes: true });
+  for (const e of entries) {
+    if (e.name === "__pycache__") {
+      continue;
+    }
+    const src = path.join(srcDir, e.name);
+    const dst = path.join(dstDir, e.name);
+    if (e.isDirectory()) {
+      await copyDirPreserveMode(src, dst);
+    } else if (e.isFile()) {
+      await fs.copyFile(src, dst);
+      const st = await fs.stat(src);
+      await fs.chmod(dst, st.mode);
+    }
+  }
+}
+
+async function listSkillDirs(dir) {
+  try {
+    const entries = await fs.readdir(dir, { withFileTypes: true });
+    return entries.filter(e => e.isDirectory()).map(e => e.name);
+  } catch (err) {
+    if (err.code === "ENOENT") {
+      return [];
+    }
+    throw err;
+  }
+}
+
+// Install Claude skills: dist/claude/skills/<name>/ -> ~/.claude/skills/<name>/
+export async function installSkills() {
+  const names = await listSkillDirs(SKILLS_SRC);
+  for (const name of names) {
+    await copyDirPreserveMode(path.join(SKILLS_SRC, name), path.join(SKILLS_DEST, name));
+  }
+  console.log(`claude: installed ${names.length} skill(s) -> ${SKILLS_DEST}`);
+  return names.length;
+}
+
 function parseArgs() {
   const idx = process.argv.indexOf("--targets");
   const raw = idx >= 0 ? process.argv[idx + 1] : "claude,cursor,windsurf,codex,opencode,antigravity";
@@ -81,6 +128,11 @@ export async function install({ targets }) {
     const count = await copyAll(SRC[t], DEST[t]);
     console.log(`${t}: installed ${count} prompt(s) -> ${DEST[t]}`);
   }
+
+  // Skills are Claude-native; install them whenever the claude target is selected.
+  if (targets.includes("claude")) {
+    await installSkills();
+  }
 }
 
 async function main() {
@@ -88,7 +140,10 @@ async function main() {
   await install({ targets });
 }
 
-main().catch((err) => {
-  console.error(err);
-  process.exit(1);
-});
+const isMain = process.argv[1] && fileURLToPath(import.meta.url) === path.resolve(process.argv[1]);
+if (isMain) {
+  main().catch((err) => {
+    console.error(err);
+    process.exit(1);
+  });
+}
