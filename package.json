@@ -11,6 +11,14 @@
     "gen-install": "npm run gen && npm run install-configs",
     "uninstall": "node scripts/uninstall.mjs",
     "link:windsurf": "node scripts/link-windsurf.mjs",
+    "changelog": "npx git-cliff -o CHANGELOG.md",
+    "version:today": "node scripts/release-version.mjs",
+    "release": "node scripts/release.mjs",
+    "prepare": "husky",
     "test": "node --test \"scripts/tests/**/*.test.mjs\" && python3 -m unittest discover skills/do/tests && sh skills/do/tests/test_telegram_send.sh && sh skills/do/tests/test_install_cron.sh"
+  },
+  "devDependencies": {
+    "git-cliff": "^2.13.1",
+    "husky": "^9.1.7"
   }
 }

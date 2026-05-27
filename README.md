@@ -89,6 +89,14 @@ npm run link:windsurf
 
 - `npm run link:windsurf` - делает `.windsurf/workflows` -> `~/.windsurf/workflows` (symlink/junction)
 
+- `npm run changelog` - перегенерирует `CHANGELOG.md` из conventional commits (git-cliff)
+
+- `npm run version:today` - печатает версию релиза на сегодня в формате `год.месяц.день` (например `2026.5.28`). При повторном релизе в тот же день добавляет патч: `2026.5.28.1`
+
+- `npm run release` - локально готовит релиз: bump `package.json`, обновляет `CHANGELOG.md`, коммит и тег `vГГГГ.М.Д`. Не пушит. Флаг `--push` — запушить ветку и тег (запускает GitHub-релиз), `--dry-run` — показать шаги без изменений
+
+См. [docs/RELEASING.md](docs/RELEASING.md) — как выпустить новую версию.
+
 ## Skills
 
 Помимо промптов (`prompts/*.md`), репозиторий содержит **скиллы** в `skills/<name>/SKILL.md`.
