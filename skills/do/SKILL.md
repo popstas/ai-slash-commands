@@ -30,8 +30,8 @@ When invoked as `/do` (no sub-command):
 - `do add <task>`: append a `- [ ] <task>` line to `docs/TODO.md` (create the file with a
   top-level heading if it's missing). Keep existing formatting/sections.
 - `do remove <task>`: remove the matching list item (match on the task text, confirm if ambiguous).
-- **Commit prefix for task-list edits is `todo:`** (e.g. `todo: add telegram retry task`).
-  This is distinct from code commits — only `docs/TODO.md` changes use `todo:`.
+- **Commit prefix for task-list edits is `task:`** (e.g. `task: add telegram retry task`).
+  This is distinct from code commits — only `docs/TODO.md` changes use `task:`.
 
 ## Execution-environment detection
 
