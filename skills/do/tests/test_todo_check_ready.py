@@ -1,5 +1,6 @@
 """Unit tests for todo_check_ready.py (stdlib unittest, no network)."""
 import os
+import shlex
 import sys
 import tempfile
 import unittest
@@ -95,7 +96,24 @@ class BuildMessageTests(unittest.TestCase):
             msg = mod.build_message(project, todo)
             project_abs = str(project.resolve())
             self.assertTrue(Path(project_abs).is_absolute())
-            self.assertIn(f'cd "{project_abs}" && claude "{mod.ADOPT_PROMPT}"', msg)
+            # Command is shlex-quoted so paths with shell metacharacters paste
+            # literally rather than expanding in the user's shell.
+            expected = (
+                f"cd {shlex.quote(project_abs)} "
+                f"&& claude {shlex.quote(mod.ADOPT_PROMPT)}"
+            )
+            self.assertIn(expected, msg)
+
+    def test_copy_paste_command_quotes_shell_metacharacters(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            base = Path(tmp) / "p$(whoami)"
+            (base / "docs").mkdir(parents=True)
+            todo = base / "docs" / "TODO.md"
+            todo.write_text(SAMPLE, encoding="utf-8")
+            msg = mod.build_message(base, todo)
+            # The raw, unquoted path must not appear as a bare cd target.
+            self.assertNotIn(f"cd {base.resolve()} ", msg)
+            self.assertIn(shlex.quote(str(base.resolve())), msg)
 
     def test_contains_percent_encoded_custom_scheme_url(self):
         with tempfile.TemporaryDirectory() as tmp:
@@ -122,18 +140,34 @@ class BuildMessageTests(unittest.TestCase):
             self.assertIn("claude ", msg)  # copy-paste command form
             self.assertIn("claude-code://", msg)  # custom-scheme URL form
 
-    def test_url_percent_encodes_underscores_in_path(self):
-        # Underscores in the project path would otherwise open a Markdown
-        # italic entity and make Telegram reject the message.
+    def test_underscore_path_is_plain_text_safe(self):
+        # The message is sent as plain text, so an underscore in the path needs
+        # no Markdown-specific escaping; it must survive intact in the command.
         with tempfile.TemporaryDirectory() as tmp:
             project = Path(tmp) / "my_cool_project"
             (project / "docs").mkdir(parents=True)
             todo = project / "docs" / "TODO.md"
             todo.write_text(SAMPLE, encoding="utf-8")
             msg = mod.build_message(project, todo)
-            url_line = next(ln for ln in msg.splitlines() if "claude-code://" in ln)
-            self.assertIn("my%5Fcool%5Fproject", url_line)
-            self.assertNotIn("_", url_line)
+            self.assertIn("my_cool_project", msg)
+            # No Markdown decoration that an underscore could turn into an
+            # unbalanced entity.
+            self.assertNotIn("*TODO ready*", msg)
+            self.assertNotIn("`", msg)
+
+    def test_backtick_in_path_does_not_break_message(self):
+        # A literal backtick in the project path cannot be escaped inside a
+        # legacy-Markdown code span; plain text keeps the nudge intact.
+        with tempfile.TemporaryDirectory() as tmp:
+            project = Path(tmp) / "weird`name"
+            (project / "docs").mkdir(parents=True)
+            todo = project / "docs" / "TODO.md"
+            todo.write_text(SAMPLE, encoding="utf-8")
+            msg = mod.build_message(project, todo)
+            # The shell-quoted command preserves the backtick for copy-paste,
+            # and the message carries no Markdown code spans to corrupt.
+            self.assertIn(shlex.quote(str(project.resolve())), msg)
+            self.assertNotIn("`cd ", msg)
 
     def test_custom_todo_path_appears_in_message(self):
         # A non-default DO_TODO_PATH must be reflected in the command, URL, and

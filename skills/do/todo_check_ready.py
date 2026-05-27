@@ -25,6 +25,7 @@ import hashlib
 import json
 import os
 import re
+import shlex
 import subprocess
 import sys
 from datetime import datetime, timezone
@@ -169,23 +170,28 @@ def build_message(project_dir: Path, todo_path: Path) -> str:
     except ValueError:
         rel_todo = Path(todo_path).name
     adopt_prompt = f"/ralphex:ralphex-adopt {rel_todo}"
-    command = f'cd "{project_abs}" && claude "{adopt_prompt}"'
-    # telegram-send posts with legacy Markdown parse mode, where a literal `_`
-    # opens an italic entity. quote() leaves `_` unescaped, so a project path
-    # like /srv/my_app would yield an unbalanced entity and a 400 from Telegram.
-    # Percent-encode `_` too; the receiver decodes it back to the same path.
-    cwd_q = quote(project_abs, safe="").replace("_", "%5F")
+    # Single-quote the copy-paste command so a project path or task-list path
+    # containing shell metacharacters ($, backticks, $()) is pasted literally
+    # rather than expanded/executed by the user's shell.
+    command = f"cd {shlex.quote(project_abs)} && claude {shlex.quote(adopt_prompt)}"
+    # The message is sent as plain text (see send_telegram's parse_mode=""), so
+    # the path/command fields cannot open an unbalanced Telegram Markdown entity
+    # — a literal `_`, `*`, backtick, or `[` in the project or task-list path
+    # would otherwise corrupt or drop the nudge. quote() already yields a valid
+    # URL; no Markdown-specific encoding is needed.
+    cwd_q = quote(project_abs, safe="")
+    prompt_q = quote(adopt_prompt, safe="")
     url = (
         "claude-code://open"
         f"?cwd={cwd_q}"
-        f"&prompt={quote(adopt_prompt, safe='')}"
+        f"&prompt={prompt_q}"
     )
     return (
-        f"📋 *TODO ready* — {n} task units queued in `{rel_todo}`.\n\n"
-        f"Open & adopt:\n`{command}`\n\n"
+        f"📋 TODO ready — {n} task units queued in {rel_todo}.\n\n"
+        f"Open & adopt:\n{command}\n\n"
         f"Or: {url}\n\n"
-        f"After the adopt plan is approved, run `/ralphex:ralphex`.\n"
-        f"Task-list edits commit with the `todo:` prefix."
+        f"After the adopt plan is approved, run /ralphex:ralphex.\n"
+        f"Task-list edits commit with the todo: prefix."
     )
 
 
@@ -255,7 +261,11 @@ def send_telegram(message: str, sender=None) -> bool:
         print("todo_check_ready: telegram-send not found", file=sys.stderr)
         return False
     try:
-        subprocess.run([exe, message], check=True)
+        # Send as plain text (empty parse_mode) so a project/TODO path with
+        # Telegram Markdown metacharacters (_ * ` [) cannot open an unbalanced
+        # entity and make the Bot API reject the whole message. ``--`` keeps the
+        # message from being parsed as an option.
+        subprocess.run([exe, "--parse-mode", "", "--", message], check=True)
         return True
     except (subprocess.CalledProcessError, OSError) as exc:
         print(f"todo_check_ready: telegram-send failed: {exc}", file=sys.stderr)

@@ -56,28 +56,51 @@ esac
 n="$(printf '%s\n' "$line" | wc -l | tr -d ' ')"
 [ "$n" = "1" ] && pass "single line emitted" || fail "expected one line, got $n"
 
-# 5. A project path containing spaces must be quoted so the cron command
+# 5. A project path containing spaces must be single-quoted so the cron command
 #    cd's into the right directory instead of splitting on the space.
 SPACED="/tmp/space dir/proj"
 sline="$($INSTALL --print --project "$SPACED")"
 case "$sline" in
-  *"cd \"$SPACED\""*) pass "spaced project dir is quoted in cd" ;;
+  *"cd '$SPACED'"*) pass "spaced project dir is quoted in cd" ;;
   *) fail "spaced project dir not quoted: $sline" ;;
 esac
 case "$sline" in
-  *"DO_PROJECT_DIR=\"$SPACED\""*) pass "spaced DO_PROJECT_DIR is quoted" ;;
+  *"DO_PROJECT_DIR='$SPACED'"*) pass "spaced DO_PROJECT_DIR is quoted" ;;
   *) fail "spaced DO_PROJECT_DIR not quoted: $sline" ;;
+esac
+
+# 5b. A project path containing shell metacharacters must be single-quoted so
+#     it is not expanded or executed when cron re-parses the line via /bin/sh.
+DANGER='/tmp/p$(touch /tmp/should-not-exist)`whoami`'
+dline="$($INSTALL --print --project "$DANGER")"
+case "$dline" in
+  *"cd '$DANGER'"*) pass "metachar project dir is single-quoted" ;;
+  *) fail "metachar project dir not single-quoted: $dline" ;;
+esac
+
+# 5c. cron treats '%' specially (newline + stdin split) before /bin/sh runs the
+#     command, so single quotes cannot protect it. A '%' in the project path
+#     must be backslash-escaped ('\%') in the emitted line, including the marker.
+PCT='/tmp/100% done/proj'
+pline="$($INSTALL --print --project "$PCT")"
+case "$pline" in
+  *'100\% done'*) pass "percent in path is escaped to \\%" ;;
+  *) fail "percent in path not escaped: $pline" ;;
+esac
+case "$pline" in
+  *'100% done'*) fail "unescaped percent leaked into line: $pline" ;;
+  *) pass "no bare percent remains in line" ;;
 esac
 
 # 6. When TELEGRAM_* are set in the environment, they must be embedded in the
 #    line so cron's minimal environment can still send the notification.
 tline="$(TELEGRAM_TOKEN=tok123 TELEGRAM_CHAT_ID=42 "$INSTALL" --print --project "$PROJ" 2>/dev/null)"
 case "$tline" in
-  *'TELEGRAM_TOKEN="tok123"'*) pass "telegram token embedded" ;;
+  *"TELEGRAM_TOKEN='tok123'"*) pass "telegram token embedded" ;;
   *) fail "telegram token not embedded: $tline" ;;
 esac
 case "$tline" in
-  *'TELEGRAM_CHAT_ID="42"'*) pass "telegram chat id embedded" ;;
+  *"TELEGRAM_CHAT_ID='42'"*) pass "telegram chat id embedded" ;;
   *) fail "telegram chat id not embedded: $tline" ;;
 esac
 
@@ -86,6 +109,34 @@ case "$line" in
   *'cron.log'*) pass "log redirect present" ;;
   *) fail "log redirect missing: $line" ;;
 esac
+
+# 8. Installing twice for the same project must be idempotent: the second run
+#    replaces the existing line rather than appending a duplicate. Exercise this
+#    with a '%' path, since the stored line carries the escaped '\%' marker and a
+#    naive match (e.g. `awk -v`, which strips the backslash) would never match it
+#    and would re-append on every run. Stub `crontab` with a file-backed fake so
+#    the real user crontab is never touched.
+STUB_DIR="$(mktemp -d)"
+trap 'rm -rf "$STUB_DIR"' EXIT
+CRONTAB_FILE="$STUB_DIR/crontab.txt"
+: > "$CRONTAB_FILE"
+cat > "$STUB_DIR/crontab" <<EOF
+#!/bin/sh
+# Minimal crontab(1) stand-in: -l prints the file, '-' reads stdin into it.
+if [ "\$1" = "-l" ]; then
+  cat "$CRONTAB_FILE"
+elif [ "\$1" = "-" ]; then
+  cat > "$CRONTAB_FILE"
+fi
+EOF
+chmod +x "$STUB_DIR/crontab"
+
+PCT2='/tmp/100% done/proj'
+PATH="$STUB_DIR:$PATH" "$INSTALL" --project "$PCT2" >/dev/null 2>&1
+PATH="$STUB_DIR:$PATH" "$INSTALL" --project "$PCT2" >/dev/null 2>&1
+dupes="$(grep -c 'ai-slash-commands:do /tmp/100\\% done/proj' "$CRONTAB_FILE" || true)"
+[ "$dupes" = "1" ] && pass "install twice for % path is idempotent (one line)" \
+  || fail "install twice for % path produced $dupes lines, expected 1"
 
 if [ "$FAILED" -eq 0 ]; then
   echo "All install-cron tests passed."
