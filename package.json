@@ -1,6 +1,6 @@
 {
   "name": "ai-slash-commands",
-  "version": "2026.2.1",
+  "version": "2026.5.28",
   "type": "module",
   "bin": {
     "ai-slash-commands": "scripts/cli.mjs"

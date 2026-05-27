@@ -7,6 +7,10 @@
 
 - Add the "do" skill with cron and Telegram support (#2)
 
+### Build
+
+- release: Add git-cliff changelog tooling
+
 ### Miscellaneous
 
 - Add docs/TODO.md
