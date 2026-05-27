@@ -37,8 +37,12 @@ npm run release -- --dry-run
 ## Что происходит после пуша тега
 
 Пуш тега `v*` запускает `.github/workflows/release.yml`:
-git-cliff формирует release notes для последнего тега (`--latest`), и
-`softprops/action-gh-release` создаёт GitHub-релиз с этим описанием.
+1. git-cliff формирует release notes для последнего тега (`--latest`), и
+   `softprops/action-gh-release` создаёт GitHub-релиз с этим описанием.
+2. Пакет публикуется в npm: `npm ci` + `npm publish --provenance --access public`.
+
+Версия в npm берётся из `package.json`, поэтому `npm run release` (который её
+бампит) должен пройти до пуша тега.
 
 После релиза можно дать ему человекочитаемое имя:
 
@@ -47,7 +51,29 @@ gh release view v2026.5.28 --json body          # посмотреть notes
 gh release edit v2026.5.28 --title "v2026.5.28: <главная фича>"
 ```
 
-## Ручной способ (без скрипта)
+## Публикация в npm
+
+В CI публикация автоматическая (см. выше), но требует **секрет `NPM_TOKEN`** в
+настройках репозитория (Settings → Secrets and variables → Actions). Токен —
+npm **Automation** token (обходит 2FA):
+
+```bash
+# создать токен: npmjs.com → Access Tokens → Generate → Automation
+gh secret set NPM_TOKEN          # вставить токен в prompt
+```
+
+Ручная публикация (если CI недоступен или токена нет):
+
+```bash
+npm whoami        # должен показать пользователя; если нет — npm login
+npm publish --provenance --access public
+```
+
+`npm publish` запускает скрипт `prepare` (husky), поэтому в чистом окружении
+сначала `npm ci`. В тарбол попадают только `scripts/`, `prompts/`, `skills/`
+(без тестов и `__pycache__`), `README.md`, `CHANGELOG.md` — см. `.npmignore`.
+
+## Ручной способ целиком (без скрипта)
 
 ```bash
 VERSION=$(npm run --silent version:today)        # напр. 2026.5.28
@@ -56,7 +82,8 @@ npm run changelog
 git add package.json CHANGELOG.md
 git commit -m "chore(release): v$VERSION"
 git tag "v$VERSION"
-git push && git push origin "v$VERSION"
+git push && git push origin "v$VERSION"           # CI создаст релиз и опубликует в npm
+# или вручную: npm publish --provenance --access public
 ```
 
 ## Примечания

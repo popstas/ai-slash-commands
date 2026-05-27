@@ -1,0 +1,16 @@
+# Published package ships the CLI, prompts and skills only.
+# .npmignore overrides .gitignore for npm, so re-list build/cruft here.
+node_modules/
+dist/
+
+# Python build artifacts and tests (skills/do/*)
+__pycache__/
+*.pyc
+tests/
+
+# Dev / release tooling — not needed at runtime
+.husky/
+.github/
+docs/
+cliff.toml
+*.log
