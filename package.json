@@ -2,6 +2,14 @@
   "name": "ai-slash-commands",
   "version": "2026.5.28",
   "type": "module",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/popstas/ai-slash-commands.git"
+  },
+  "homepage": "https://github.com/popstas/ai-slash-commands#readme",
+  "bugs": {
+    "url": "https://github.com/popstas/ai-slash-commands/issues"
+  },
   "bin": {
     "ai-slash-commands": "scripts/cli.mjs"
   },

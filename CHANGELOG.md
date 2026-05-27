@@ -9,6 +9,7 @@
 
 ### Build
 
+- release: Publish to npm on release
 - release: Add git-cliff changelog tooling
 
 ### Miscellaneous
