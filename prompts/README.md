@@ -10,12 +10,6 @@ Clarify Task
 
 *Source: [clarify-task.md](clarify-task.md)*
 
-### `/commit`
-
-make a commit
-
-*Source: [commit.md](commit.md)*
-
 ### `/dependencies`
 
 update packages
