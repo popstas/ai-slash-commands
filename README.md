@@ -89,6 +89,35 @@ npm run link:windsurf
 
 - `npm run link:windsurf` - делает `.windsurf/workflows` -> `~/.windsurf/workflows` (symlink/junction)
 
+## Skills
+
+Помимо промптов (`prompts/*.md`), репозиторий содержит **скиллы** в `skills/<name>/SKILL.md`.
+Скилл — это директория с `SKILL.md` (frontmatter `--- name / description ---`) и любыми
+вспомогательными файлами (скрипты, тесты). При `npm run gen` каждый скилл:
+
+- копируется целиком в `dist/claude/skills/<name>/` (Claude Code умеет скиллы нативно);
+- превращается в command-shim `dist/<target>/<commandsDir>/<name>.md` для **всех** целей
+  (frontmatter срезается, первой строкой добавляется `# <name> - <description>`), так что
+  `/do`, `/commit` доступны во всех редакторах.
+
+`npm run install-configs` копирует `dist/claude/skills/` → `~/.claude/skills/` (сохраняя
+исполняемый бит у `*.py` / `*.sh` / `telegram-send`), а `npm run uninstall` их удаляет.
+
+### Скилл `do`
+
+`do` превращает `docs/TODO.md` проекта в автономный цикл «планируй и кодь»:
+
+- **cron** — `skills/do/todo_check_ready.py` (только stdlib) ~раз в день решает, накопилось ли
+  достаточно задач, и при готовности шлёт Telegram-нудж с командой/ссылкой, открывающей Claude в
+  проекте и запускающей `/ralphex:ralphex-adopt docs/TODO.md`;
+- **вручную** — `/do` оценивает список задач, может запустить ralphex-adopt → ralphex и
+  редактировать список (`do add` / `do remove`, коммиты с префиксом `todo:`).
+
+Требуемые env: `TELEGRAM_TOKEN`, `TELEGRAM_CHAT_ID`; опционально `DO_TODO_PATH`, `DO_PROJECT_DIR`,
+`DO_MIN_TASKS`, `DO_STATE_DIR`, `DO_AGENT`, `DO_LAUNCH_AGENT`. Установка cron-строки:
+`sh skills/do/install-cron.sh` (или `--print`). Подробности — в
+[`skills/do/README.md`](skills/do/README.md) и [`skills/do/SKILL.md`](skills/do/SKILL.md).
+
 ## Примечания по папкам (ссылки на доки)
 - Claude Code personal commands: `~/.claude/commands`
 - Cursor global commands: `~/.cursor/commands`
