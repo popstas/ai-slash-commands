@@ -1,24 +1,4 @@
-Ниже: драфт скилла `do`. Нужно сделать полный скилл в `skills/do/SKILL.md`.
+# TODO
 
-# Skill `do`
-Оценивает, список задач в docs/TODO.md, запускает ralphex-adopt, ralphex, send and receive message to user in telegram. Добавляет, изменяет, удаляет задачи в docs/TODO.md.
-
-Список задач в docs/TODO.md, commit prefix: `todo:`.
-
-В файле скилла `todo_check_ready.py` запуск агента (по умолчанию codex, меняется через env) с промптом `/do`. Он вызовет этот скилл.
-Скрипт будет запускаться по системному cron, отдельно для каждого проекта.
-Может запускаться вручную через команду `/do`.
-Скрипт будет проверять, что список задач в docs/TODO.md достаточный для запуска ralphex-adopt.
-Оцени субъективно, когда пора запускать планирование и кодинг.
-
-Если пора запускать, напиши сообщение в Telegram.
-Этот скилл может запускаться внутри агента с интерфейсом в Telegram. Например, в openclaw, hermes. Тогда нужно использовать возможности агента. Описать возможности текущих агентов. Добавить для них инструкции, как определить в скилле, что он запущен внутри агента.
-
-Если запускается через терминал или cron, то использовать команду через cli `telegram-send`.
-`telegram-send` - если требуется, напиши и выполни установку, если не установлен в системе, проверь через `which telegram-send`. Используй проект telegram cli send, например этот: https://github.com/fabianonline/telegram.sh - найди подходящий проект, который можно установить в систему.
-
-Напиши в сообщении ссылку, которая открывает клод в этом проекте в терминале, и сразу /ralphex:ralphex-adopt docs/TODO.md
-
-После одобрения плана предложи запустить `/ralphex:ralphex`.
-
-Изменение задач: `do add`, `do remove`.
+- [ ] Create skill `todo-review`: reviews and grooms `docs/TODO.md` — dedupe items, clarify vague
+  ones, flag completed/stale tasks, and surface what's ready for `ralphex-adopt`. Complements `do`.

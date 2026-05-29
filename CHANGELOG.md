@@ -7,6 +7,10 @@
 
 - Add the "do" skill with cron and Telegram support (#2)
 
+### Bug Fixes
+
+- npm: Add repository field for provenance
+
 ### Build
 
 - release: Publish to npm on release
