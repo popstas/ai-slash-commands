@@ -5,6 +5,7 @@
 
 ### Features
 
+- Verify todo-review skill acceptance criteria
 - Document todo-review skill and record task done
 - Add todo-review skill and restore do script exec bits
 

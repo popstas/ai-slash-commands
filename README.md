@@ -119,7 +119,7 @@ npm run link:windsurf
   достаточно задач, и при готовности шлёт Telegram-нудж с командой/ссылкой, открывающей Claude в
   проекте и запускающей `/ralphex:ralphex-adopt docs/TODO.md`;
 - **вручную** — `/do` оценивает список задач, может запустить ralphex-adopt → ralphex и
-  редактировать список (`do add` / `do remove`, коммиты с префиксом `todo:`).
+  редактировать список (`do add` / `do remove`, коммиты с префиксом `task:`).
 
 Требуемые env: `TELEGRAM_TOKEN`, `TELEGRAM_CHAT_ID`; опционально `DO_TODO_PATH`, `DO_PROJECT_DIR`,
 `DO_MIN_TASKS`, `DO_STATE_DIR`, `DO_AGENT`, `DO_LAUNCH_AGENT`. Установка cron-строки:
