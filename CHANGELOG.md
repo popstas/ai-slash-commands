@@ -5,6 +5,7 @@
 
 ### Features
 
+- Document todo-review skill and record task done
 - Add todo-review skill and restore do script exec bits
 
 ### Documentation

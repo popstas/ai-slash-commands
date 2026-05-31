@@ -72,14 +72,20 @@ change) plus the docs/TODO bookkeeping that records the task as done.
 
 ### Task 3: Verify acceptance criteria
 
-- [ ] Confirm `npm run gen` lists `todo-review` among generated skills and the per-target shims
-      exist
-- [ ] Run the full project test suite (`npm test`) - must pass
-- [ ] Run `npm run install-configs` (or `npm run gen-install`) and confirm
-      `~/.claude/skills/todo-review/SKILL.md` exists so `/todo-review` is usable
-- [ ] Smoke-test: invoke `/todo-review` and confirm it lists `~/projects` git projects with
-      `docs/TODO.md` and prints a summary, editing nothing
-- [ ] Verify all requirements from Overview are implemented
+- [x] Confirm `npm run gen` lists `todo-review` among generated skills and the per-target shims
+      exist (verified: `Generated skills: commit, do, todo-review`; shims present for antigravity,
+      claude, codex, cursor, opencode, windsurf)
+- [x] Run the full project test suite (`npm test`) - must pass (exit 0: 8/8 node, 34 python, all
+      shell tests passed)
+- [x] Run `npm run install-configs` (or `npm run gen-install`) and confirm
+      `~/.claude/skills/todo-review/SKILL.md` exists so `/todo-review` is usable (installed and
+      now listed among available skills)
+- [x] Smoke-test: invoke `/todo-review` and confirm it lists `~/projects` git projects with
+      `docs/TODO.md` and prints a summary, editing nothing (ran the skill's discovery `find` snippet
+      directly — listed 10 git projects with `docs/TODO.md`, read-only; full interactive invocation
+      not automatable in the loop)
+- [x] Verify all requirements from Overview are implemented (skill ported verbatim, built &
+      distributed like `do`/`commit`, documented in README, available in every editor target)
 
 ## Post-Completion
 
