@@ -126,6 +126,13 @@ npm run link:windsurf
 `sh skills/do/install-cron.sh` (или `--print`). Подробности — в
 [`skills/do/README.md`](skills/do/README.md) и [`skills/do/SKILL.md`](skills/do/SKILL.md).
 
+### Скилл `todo-review`
+
+`todo-review` — read-only обзор по всем проектам: сканирует git-проекты в `~/projects`, находит
+`docs/TODO.md`, печатает путь и полное содержимое каждого файла и выводит итоговую сводку (счётчики
++ короткий вывод), ничего не редактируя. Дополняет `do`: показывает, где накопились задачи, а
+запуск работы оставляет за `/do`. Подробности — в [`skills/todo-review/SKILL.md`](skills/todo-review/SKILL.md).
+
 ## Примечания по папкам (ссылки на доки)
 - Claude Code personal commands: `~/.claude/commands`
 - Cursor global commands: `~/.cursor/commands`

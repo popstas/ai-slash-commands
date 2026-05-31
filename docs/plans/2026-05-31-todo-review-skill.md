@@ -61,12 +61,14 @@ change) plus the docs/TODO bookkeeping that records the task as done.
 
 ### Task 2: Record the task as done and document the skill
 
-- [ ] Remove the completed `- [ ] Create skill todo-review …` item from `docs/TODO.md` (leaving the
+- [x] Remove the completed `- [ ] Create skill todo-review …` item from `docs/TODO.md` (leaving the
       `# TODO` heading), consistent with how completed tasks are dropped
-- [ ] Add a short `### Скилл todo-review` note (or one line) in `README.md` `## Skills` next to the
+- [x] Add a short `### Скилл todo-review` note (or one line) in `README.md` `## Skills` next to the
       `### Скилл do` block: cross-project overview of all `docs/TODO.md` in `~/projects`, complements
       `do`
-- [ ] run project tests - `npm test` must pass before next task
+- [x] run project tests - `npm test` must pass before next task (also fixed a stale `task:` commit-prefix
+      assertion in `skills/do/tests/test_skill_meta.py` and restored the executable bit on
+      `skills/do/install-cron.sh`, both pre-existing failures)
 
 ### Task 3: Verify acceptance criteria
 

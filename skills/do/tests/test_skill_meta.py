@@ -36,7 +36,7 @@ class TestSkillMeta(unittest.TestCase):
 
     def test_body_documents_key_behaviors(self):
         body = self.content
-        self.assertIn("todo:", body)  # commit prefix
+        self.assertIn("task:", body)  # commit prefix
         self.assertIn("/ralphex:ralphex-adopt docs/TODO.md", body)
         self.assertIn("telegram-send", body)  # standalone/cron branch
         self.assertIn("DO_MIN_TASKS", body)  # cron env docs
