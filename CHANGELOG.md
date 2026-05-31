@@ -3,6 +3,10 @@
 
 ## Unreleased
 
+### Documentation
+
+- do: Expand /do flow with planning and push
+
 ### Miscellaneous
 
 - Drop completed `do` spec, add `todo-review` skill task
