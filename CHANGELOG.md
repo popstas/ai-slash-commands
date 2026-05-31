@@ -3,6 +3,10 @@
 
 ## Unreleased
 
+### Features
+
+- Add todo-review skill and restore do script exec bits
+
 ### Documentation
 
 - do: Expand /do flow with planning and push

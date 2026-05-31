@@ -50,13 +50,14 @@ change) plus the docs/TODO bookkeeping that records the task as done.
 
 ### Task 1: Add the todo-review skill file
 
-- [ ] Create `skills/todo-review/SKILL.md` by copying the vault file
+- [x] Create `skills/todo-review/SKILL.md` by copying the vault file
       `~/projects/text/obsidian/home/.claude/skills/todo-review/SKILL.md` verbatim (frontmatter +
       "Что делать" + "Замечания"), preserving the Russian content
-- [ ] Run `npm run gen` and confirm the console prints `todo-review` in `Generated skills:` and
+- [x] Run `npm run gen` and confirm the console prints `todo-review` in `Generated skills:` and
       that `dist/claude/skills/todo-review/SKILL.md` plus a `dist/claude/commands/todo-review.md`
       shim (H1 `# todo-review - …`) are produced
-- [ ] run project tests - `npm test` must pass before next task
+- [x] run project tests - `npm test` must pass before next task (also restored the lost executable
+      bits on `skills/do/todo_check_ready.py` and `telegram-send`, which were failing the install test)
 
 ### Task 2: Record the task as done and document the skill
 
