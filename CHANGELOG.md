@@ -1,6 +1,12 @@
 # Changelog
 
 
+## Unreleased
+
+### Miscellaneous
+
+- Drop completed `do` spec, add `todo-review` skill task
+
 ## v2026.5.28 - 2026-05-27
 
 ### Features
