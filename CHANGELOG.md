@@ -9,6 +9,10 @@
 - Document todo-review skill and record task done
 - Add todo-review skill and restore do script exec bits
 
+### Bug Fixes
+
+- review: Correct do commit prefix in README and harden test
+
 ### Documentation
 
 - do: Expand /do flow with planning and push
