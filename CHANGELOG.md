@@ -1,6 +1,26 @@
 # Changelog
 
 
+## Unreleased
+
+### Features
+
+- Verify todo-review skill acceptance criteria
+- Document todo-review skill and record task done
+- Add todo-review skill and restore do script exec bits
+
+### Bug Fixes
+
+- review: Correct do commit prefix in README and harden test
+
+### Documentation
+
+- do: Expand /do flow with planning and push
+
+### Miscellaneous
+
+- Drop completed `do` spec, add `todo-review` skill task
+
 ## v2026.5.28 - 2026-05-27
 
 ### Features

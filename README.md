@@ -119,12 +119,19 @@ npm run link:windsurf
   достаточно задач, и при готовности шлёт Telegram-нудж с командой/ссылкой, открывающей Claude в
   проекте и запускающей `/ralphex:ralphex-adopt docs/TODO.md`;
 - **вручную** — `/do` оценивает список задач, может запустить ralphex-adopt → ralphex и
-  редактировать список (`do add` / `do remove`, коммиты с префиксом `todo:`).
+  редактировать список (`do add` / `do remove`, коммиты с префиксом `task:`).
 
 Требуемые env: `TELEGRAM_TOKEN`, `TELEGRAM_CHAT_ID`; опционально `DO_TODO_PATH`, `DO_PROJECT_DIR`,
 `DO_MIN_TASKS`, `DO_STATE_DIR`, `DO_AGENT`, `DO_LAUNCH_AGENT`. Установка cron-строки:
 `sh skills/do/install-cron.sh` (или `--print`). Подробности — в
 [`skills/do/README.md`](skills/do/README.md) и [`skills/do/SKILL.md`](skills/do/SKILL.md).
+
+### Скилл `todo-review`
+
+`todo-review` — read-only обзор по всем проектам: сканирует git-проекты в `~/projects`, находит
+`docs/TODO.md`, печатает путь и полное содержимое каждого файла и выводит итоговую сводку (счётчики
++ короткий вывод), ничего не редактируя. Дополняет `do`: показывает, где накопились задачи, а
+запуск работы оставляет за `/do`. Подробности — в [`skills/todo-review/SKILL.md`](skills/todo-review/SKILL.md).
 
 ## Примечания по папкам (ссылки на доки)
 - Claude Code personal commands: `~/.claude/commands`
