@@ -7,6 +7,10 @@
 
 - Add todo-review skill (#3)
 
+### Documentation
+
+- do: Add "clear completed todos" step and "do finalize" flow
+
 ### Miscellaneous
 
 - Drop completed `do` spec, add `todo-review` skill task
