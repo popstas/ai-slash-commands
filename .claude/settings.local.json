@@ -4,7 +4,8 @@
       "Bash(node scripts/cli.mjs:*)",
       "Bash(git add:*)",
       "Bash(git rm:*)",
-      "Bash(git commit:*)"
+      "Bash(git commit:*)",
+      "Skill(revdiff:revdiff)"
     ]
   }
 }
