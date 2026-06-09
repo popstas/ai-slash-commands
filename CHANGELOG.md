@@ -1,6 +1,12 @@
 # Changelog
 
 
+## Unreleased
+
+### Documentation
+
+- do: Add "do early pr" flow and allow folding TODO edits into code commits
+
 ## v2026.6.2 - 2026-06-02
 
 ### Features
