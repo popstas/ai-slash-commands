@@ -3,6 +3,10 @@
 
 ## Unreleased
 
+### Features
+
+- do: Add checklist for manual checks of the features
+
 ### Documentation
 
 - do: Add "do early pr" flow and allow folding TODO edits into code commits
