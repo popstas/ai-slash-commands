@@ -16,6 +16,7 @@ import { fileURLToPath } from "node:url";
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const repoRoot = path.resolve(__dirname, "..");
 const pkgPath = path.join(repoRoot, "package.json");
+const lockPath = path.join(repoRoot, "package-lock.json");
 
 const dryRun = process.argv.includes("--dry-run");
 const push = process.argv.includes("--push");
@@ -41,11 +42,17 @@ const pkg = JSON.parse(readFileSync(pkgPath, "utf8"));
 pkg.version = version;
 if (!dryRun) writeFileSync(pkgPath, JSON.stringify(pkg, null, 2) + "\n");
 
+// 1b. Keep package-lock.json in sync (it carries the version in two places).
+const lock = JSON.parse(readFileSync(lockPath, "utf8"));
+lock.version = version;
+if (lock.packages?.[""]) lock.packages[""].version = version;
+if (!dryRun) writeFileSync(lockPath, JSON.stringify(lock, null, 2) + "\n");
+
 // 2. Regenerate the changelog (pre-commit also does this, but keep it explicit).
 run("npx git-cliff -o CHANGELOG.md");
 
 // 3. Commit and tag.
-run("git add package.json CHANGELOG.md");
+run("git add package.json package-lock.json CHANGELOG.md");
 run(`git commit -m "chore(release): ${tag}"`);
 run(`git tag ${tag}`);
 
